@@ -25,6 +25,8 @@ app.add_middleware(
 def read_root():
     return {"message": "Welcome to Sentinel AI Commander"}
 
-from app.api.routes import analytics
-app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["analytics"])
+from app.api.routes import analytics, optimization, strategy
 
+app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["analytics"])
+app.include_router(optimization.router, prefix="/api/v1/optimization", tags=["optimization"])
+app.include_router(strategy.router, prefix="/api/v1/strategy", tags=["strategy"])
