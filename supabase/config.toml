@@ -1,0 +1,7 @@
+project_id = "eupzhjktffzmzzcddemn"
+
+[functions.analyze-visibility]
+verify_jwt = false
+
+[functions.send-webhook-alert]
+verify_jwt = false

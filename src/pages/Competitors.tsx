@@ -1,0 +1,238 @@
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { Users, TrendingUp, TrendingDown, Minus, Plus, Trash2, ExternalLink, BarChart3, MessageSquare, FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
+
+interface Competitor {
+  id: string;
+  name: string;
+  domain: string;
+  created_at: string;
+}
+
+// Simulated benchmark data per competitor (will be replaced with real data from AI analysis)
+function generateBenchmark(name: string, index: number) {
+  const seed = name.length + index;
+  return {
+    visibility: Math.max(20, Math.min(95, 50 + (seed * 7) % 40)),
+    visibilityChange: ((seed * 3) % 15) - 5,
+    sentiment: Math.max(30, Math.min(95, 60 + (seed * 11) % 30)),
+    citations: Math.max(5, (seed * 13) % 200),
+    topLLM: ["ChatGPT", "Claude", "Gemini", "Perplexity"][seed % 4],
+  };
+}
+
+export default function Competitors() {
+  const { user } = useAuth();
+  const [competitors, setCompetitors] = useState<Competitor[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [newComp, setNewComp] = useState({ name: "", domain: "" });
+
+  const fetchCompetitors = async () => {
+    if (!user) return;
+    const { data } = await supabase.from("competitors").select("*").eq("user_id", user.id).order("created_at", { ascending: true });
+    setCompetitors(data || []);
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchCompetitors(); }, [user]);
+
+  const addCompetitor = async () => {
+    if (!user || !newComp.name.trim() || !newComp.domain.trim()) return;
+    const { error } = await supabase.from("competitors").insert({ user_id: user.id, name: newComp.name, domain: newComp.domain });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Competitor added!");
+    setNewComp({ name: "", domain: "" });
+    setDialogOpen(false);
+    fetchCompetitors();
+  };
+
+  const deleteCompetitor = async (id: string) => {
+    await supabase.from("competitors").delete().eq("id", id);
+    toast.success("Competitor removed");
+    fetchCompetitors();
+  };
+
+  const yourBrand = { name: "Your Brand", domain: "", visibility: 78, visibilityChange: 5.2, sentiment: 72, citations: 487, topLLM: "ChatGPT" };
+
+  const allEntries = [
+    { id: "you", ...yourBrand, isYou: true },
+    ...competitors.map((c, i) => ({
+      id: c.id,
+      name: c.name,
+      domain: c.domain,
+      isYou: false,
+      ...generateBenchmark(c.name, i),
+    })),
+  ].sort((a, b) => b.visibility - a.visibility);
+
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Competitors</h1>
+            <p className="text-muted-foreground mt-1">Side-by-side benchmarking across AI visibility, sentiment & citations</p>
+          </div>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2"><Plus className="h-4 w-4" /> Add Competitor</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>Add a Competitor</DialogTitle></DialogHeader>
+              <div className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <Label>Company Name</Label>
+                  <Input value={newComp.name} onChange={e => setNewComp(p => ({ ...p, name: e.target.value }))} placeholder="Acme Corp" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Domain</Label>
+                  <Input value={newComp.domain} onChange={e => setNewComp(p => ({ ...p, domain: e.target.value }))} placeholder="acme.com" />
+                </div>
+                <Button onClick={addCompetitor} className="w-full">Add Competitor</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Summary cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-card rounded-xl p-4 border border-border">
+            <div className="flex items-center gap-2 text-muted-foreground mb-1"><Users className="h-4 w-4" /><span className="text-sm">Tracked</span></div>
+            <p className="text-2xl font-bold text-foreground">{competitors.length}</p>
+          </div>
+          <div className="bg-card rounded-xl p-4 border border-border">
+            <div className="flex items-center gap-2 text-muted-foreground mb-1"><BarChart3 className="h-4 w-4" /><span className="text-sm">Your Rank</span></div>
+            <p className="text-2xl font-bold text-primary">#{allEntries.findIndex(e => e.isYou) + 1}</p>
+          </div>
+          <div className="bg-card rounded-xl p-4 border border-border">
+            <div className="flex items-center gap-2 text-muted-foreground mb-1"><MessageSquare className="h-4 w-4" /><span className="text-sm">Avg Sentiment</span></div>
+            <p className="text-2xl font-bold text-success">{yourBrand.sentiment}%</p>
+          </div>
+          <div className="bg-card rounded-xl p-4 border border-border">
+            <div className="flex items-center gap-2 text-muted-foreground mb-1"><FileText className="h-4 w-4" /><span className="text-sm">Your Citations</span></div>
+            <p className="text-2xl font-bold text-foreground">{yourBrand.citations}</p>
+          </div>
+        </div>
+
+        {/* Benchmarking matrix */}
+        {loading ? (
+          <div className="text-center py-12 text-muted-foreground">Loading competitors...</div>
+        ) : (
+          <div className="rounded-2xl bg-card border border-border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-border hover:bg-transparent">
+                  <TableHead className="w-12">#</TableHead>
+                  <TableHead>Company</TableHead>
+                  <TableHead className="text-center">Visibility Score</TableHead>
+                  <TableHead className="text-center">Trend</TableHead>
+                  <TableHead className="text-center">Sentiment</TableHead>
+                  <TableHead className="text-center">Citations</TableHead>
+                  <TableHead className="text-center">Top LLM</TableHead>
+                  <TableHead className="w-12"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {allEntries.map((entry, index) => {
+                  const trend = entry.visibilityChange > 0 ? "up" : entry.visibilityChange < 0 ? "down" : "neutral";
+                  return (
+                    <TableRow
+                      key={entry.id}
+                      className={cn(
+                        "border-border transition-colors",
+                        entry.isYou && "bg-primary/5 hover:bg-primary/10"
+                      )}
+                    >
+                      <TableCell className="font-bold text-muted-foreground">
+                        {index + 1}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            "h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold",
+                            entry.isYou ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+                          )}>
+                            {entry.name[0]}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-foreground">{entry.name}</span>
+                              {entry.isYou && <Badge className="bg-primary text-primary-foreground text-xs">You</Badge>}
+                            </div>
+                            {!entry.isYou && (
+                              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                {entry.domain} <ExternalLink className="h-3 w-3" />
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className="text-lg font-bold text-foreground">{entry.visibility}</span>
+                        <span className="text-xs text-muted-foreground">/100</span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className={cn(
+                          "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
+                          trend === "up" && "bg-success/20 text-success",
+                          trend === "down" && "bg-destructive/20 text-destructive",
+                          trend === "neutral" && "bg-secondary text-muted-foreground"
+                        )}>
+                          {trend === "up" && <TrendingUp className="h-3 w-3" />}
+                          {trend === "down" && <TrendingDown className="h-3 w-3" />}
+                          {trend === "neutral" && <Minus className="h-3 w-3" />}
+                          {entry.visibilityChange > 0 ? "+" : ""}{entry.visibilityChange}%
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="w-16 h-2 rounded-full bg-secondary overflow-hidden">
+                            <div className="h-full rounded-full bg-success" style={{ width: `${entry.sentiment}%` }} />
+                          </div>
+                          <span className="text-sm text-foreground">{entry.sentiment}%</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center font-semibold text-foreground">
+                        {entry.citations}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant="outline" className="text-xs">{entry.topLLM}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        {!entry.isYou && (
+                          <Button variant="ghost" size="icon" onClick={() => deleteCompetitor(entry.id)} className="opacity-50 hover:opacity-100">
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+
+        {competitors.length === 0 && !loading && (
+          <div className="text-center py-8 bg-card rounded-2xl border border-border">
+            <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground mb-4">Add competitors to see how you compare across AI platforms.</p>
+            <Button onClick={() => setDialogOpen(true)}>Add Your First Competitor</Button>
+          </div>
+        )}
+      </div>
+    </DashboardLayout>
+  );
+}

@@ -1,0 +1,161 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* GEO Platform Design System - Premium Dark SaaS Aesthetic */
+
+@layer base {
+  :root {
+    /* Light mode - rarely used, kept for compatibility */
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 13%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 187 92% 52%;
+    --primary-foreground: 222 47% 11%;
+
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 262 83% 58%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 210 40% 98%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 222 47% 11%;
+
+    --border: 217 33% 20%;
+    --input: 217 33% 17%;
+    --ring: 187 92% 52%;
+
+    --radius: 0.75rem;
+
+    /* Custom tokens for GEO platform */
+    --glow-primary: 187 92% 52%;
+    --glow-accent: 262 83% 58%;
+    --glow-success: 142 76% 36%;
+    
+    --surface-elevated: 222 47% 15%;
+    --surface-overlay: 222 47% 9%;
+    
+    --gradient-primary: linear-gradient(135deg, hsl(187 92% 52%) 0%, hsl(262 83% 58%) 100%);
+    --gradient-dark: linear-gradient(180deg, hsl(222 47% 13%) 0%, hsl(222 47% 9%) 100%);
+    --gradient-card: linear-gradient(135deg, hsl(222 47% 15% / 0.8) 0%, hsl(222 47% 11% / 0.6) 100%);
+    
+    --shadow-glow: 0 0 40px -10px hsl(187 92% 52% / 0.3);
+    --shadow-card: 0 4px 24px -4px hsl(222 84% 5% / 0.4);
+    --shadow-elevated: 0 8px 32px -8px hsl(222 84% 5% / 0.6);
+
+    /* Sidebar */
+    --sidebar-background: 222 47% 9%;
+    --sidebar-foreground: 215 20% 65%;
+    --sidebar-primary: 187 92% 52%;
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-ring: 187 92% 52%;
+  }
+
+  .dark {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 13%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 187 92% 52%;
+    --primary-foreground: 222 47% 11%;
+
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 262 83% 58%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 33% 20%;
+    --input: 217 33% 17%;
+    --ring: 187 92% 52%;
+
+    --sidebar-background: 222 47% 9%;
+    --sidebar-foreground: 215 20% 65%;
+    --sidebar-primary: 187 92% 52%;
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-ring: 187 92% 52%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+@layer utilities {
+  .glow-primary {
+    box-shadow: 0 0 40px -10px hsl(var(--glow-primary) / 0.4);
+  }
+  
+  .glow-accent {
+    box-shadow: 0 0 40px -10px hsl(var(--glow-accent) / 0.4);
+  }
+
+  .glow-success {
+    box-shadow: 0 0 40px -10px hsl(var(--glow-success) / 0.4);
+  }
+  
+  .gradient-border {
+    background: linear-gradient(var(--background), var(--background)) padding-box,
+                linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent))) border-box;
+    border: 1px solid transparent;
+  }
+  
+  .text-gradient {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glass {
+    background: hsl(var(--card) / 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  .glass-strong {
+    background: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+}
