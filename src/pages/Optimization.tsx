@@ -62,21 +62,63 @@ export default function Optimization() {
   const generateTasks = async () => {
     if (!user) return;
     setGenerating(true);
-    // Generate sample AEO tasks (will be replaced with AI-powered generation)
-    const sampleTasks = [
-      { title: "Add FAQ Schema to pricing page", description: "Adding FAQ structured data helps AI models extract answers directly from your pricing page.", category: "schema", priority: "high", ai_suggestion: "Add JSON-LD FAQ schema markup covering common pricing questions. This increases the chance of being cited when users ask about pricing.", impact_score: 85 },
-      { title: "Update About page for brand authority", description: "Your About page lacks key brand signals that LLMs look for when deciding to recommend your product.", category: "authority", priority: "medium", ai_suggestion: "Add founding story, team credentials, awards, and customer logos. Include specific metrics like '10,000+ customers' to boost authority signals.", impact_score: 72 },
-      { title: "Fill content gap: comparison pages", description: "No content exists for '[Your Brand] vs [Competitor]' queries that LLMs frequently encounter.", category: "content_gap", priority: "critical", ai_suggestion: "Create detailed comparison pages for your top 3 competitors. Include feature tables, pricing comparison, and real user testimonials.", impact_score: 92 },
-      { title: "Add HowTo schema to documentation", description: "Your docs lack structured data that helps AI understand step-by-step processes.", category: "technical", priority: "medium", ai_suggestion: "Implement HowTo schema on your top 10 documentation pages. This helps LLMs provide accurate how-to answers citing your docs.", impact_score: 68 },
-      { title: "Optimize meta descriptions for AI", description: "Current meta descriptions are too short and lack the context LLMs need.", category: "general", priority: "low", ai_suggestion: "Rewrite meta descriptions to be 150-160 chars, including your brand name, key value prop, and target use case in natural language.", impact_score: 45 },
-    ];
+    
+    try {
+      // Get user profile for brand info
+      const { data: profile } = await supabase.from("profiles").select("website_url, display_name").eq("user_id", user.id).single();
+      if (!profile?.website_url) {
+        toast.error("Please add your website URL in Settings first");
+        setGenerating(false);
+        return;
+      }
 
-    for (const task of sampleTasks) {
-      await supabase.from("optimization_tasks").insert({ ...task, user_id: user.id, status: "pending" });
+      // Fetch a few prompts to analyze
+      const { data: prompts } = await supabase.from("tracked_prompts").select("query").eq("user_id", user.id).limit(3);
+      if (!prompts || prompts.length === 0) {
+        toast.error("Add some tracked prompts first to generate targeted tasks");
+        setGenerating(false);
+        return;
+      }
+
+      toast.info("AI is analyzing your visibility gaps...");
+
+      // Call the analyze-visibility function for the first prompt to get recommendations
+      // In a real app, we might have a dedicated 'generate-tasks' function
+      const { data, error } = await supabase.functions.invoke("analyze-visibility", {
+        body: { 
+          query: prompts[0].query,
+          brand_name: profile.display_name || profile.website_url,
+          llm_platform: "chatgpt"
+        }
+      });
+
+      if (error || !data?.analysis?.recommendations) {
+        throw new Error(error?.message || "Failed to generate recommendations");
+      }
+
+      // Map AI recommendations to optimization tasks
+      const newTasks = data.analysis.recommendations.map((rec: string, i: number) => ({
+        user_id: user.id,
+        title: rec.length > 50 ? rec.substring(0, 50) + "..." : rec,
+        description: rec,
+        category: i % 2 === 0 ? "schema" : "content_gap",
+        priority: i === 0 ? "high" : "medium",
+        ai_suggestion: rec,
+        impact_score: 70 + Math.floor(Math.random() * 20),
+        status: "pending"
+      }));
+
+      const { error: insertError } = await supabase.from("optimization_tasks").insert(newTasks);
+      if (insertError) throw insertError;
+
+      toast.success("Successfully generated new AEO tasks!");
+      fetchTasks();
+    } catch (e: any) {
+      console.error(e);
+      toast.error("AI Analysis failed: " + e.message);
+    } finally {
+      setGenerating(false);
     }
-    toast.success("Generated weekly AEO tasks!");
-    setGenerating(false);
-    fetchTasks();
   };
 
   const filteredTasks = filter === "all" ? tasks : tasks.filter(t => t.status === filter);
