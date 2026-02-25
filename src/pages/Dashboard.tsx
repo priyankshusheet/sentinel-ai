@@ -7,14 +7,14 @@ import { AlertsPanel } from "@/components/dashboard/AlertsPanel";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { PromptCoverageChart } from "@/components/dashboard/PromptCoverageChart";
 import { SentimentIndicator } from "@/components/dashboard/SentimentIndicator";
-import { CitationOwnership } from "@/components/dashboard/CitationOwnership";
+import { CitationNodeMap } from "@/components/dashboard/CitationNodeMap";
+import { VisibilityTrendChart } from "@/components/dashboard/VisibilityTrendChart";
 import { 
   Search, 
   FileText, 
   Zap, 
   Users,
   Activity,
-  Eye,
 } from "lucide-react";
 
 const competitors = [
@@ -130,6 +130,11 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
+        {/* 30-day visibility trend */}
+        <motion.div variants={itemVariants}>
+          <VisibilityTrendChart />
+        </motion.div>
+
         {/* Bottom grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Prompt coverage */}
@@ -137,9 +142,9 @@ export default function Dashboard() {
             <PromptCoverageChart />
           </motion.div>
 
-          {/* Citation ownership */}
+          {/* Citation node map */}
           <motion.div variants={itemVariants}>
-            <CitationOwnership />
+            <CitationNodeMap />
           </motion.div>
         </div>
 

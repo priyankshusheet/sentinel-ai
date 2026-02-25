@@ -12,6 +12,7 @@ import Prompts from "./pages/Prompts";
 import Citations from "./pages/Citations";
 import Optimization from "./pages/Optimization";
 import Competitors from "./pages/Competitors";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,10 +33,10 @@ const App = () => (
             <Route path="/citations" element={<ProtectedRoute><Citations /></ProtectedRoute>} />
             <Route path="/optimization" element={<ProtectedRoute><Optimization /></ProtectedRoute>} />
             <Route path="/competitors" element={<ProtectedRoute><Competitors /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/programmatic-seo" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/ai-agents" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/integrations" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/integrations" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

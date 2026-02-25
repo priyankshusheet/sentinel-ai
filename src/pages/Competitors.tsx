@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { CompetitorInsights } from "@/components/dashboard/CompetitorInsights";
 
 interface Competitor {
   id: string;
@@ -20,7 +21,6 @@ interface Competitor {
   created_at: string;
 }
 
-// Simulated benchmark data per competitor (will be replaced with real data from AI analysis)
 function generateBenchmark(name: string, index: number) {
   const seed = name.length + index;
   return {
@@ -155,15 +155,10 @@ export default function Competitors() {
                         entry.isYou && "bg-primary/5 hover:bg-primary/10"
                       )}
                     >
-                      <TableCell className="font-bold text-muted-foreground">
-                        {index + 1}
-                      </TableCell>
+                      <TableCell className="font-bold text-muted-foreground">{index + 1}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className={cn(
-                            "h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold",
-                            entry.isYou ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
-                          )}>
+                          <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold", entry.isYou ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground")}>
                             {entry.name[0]}
                           </div>
                           <div>
@@ -184,12 +179,7 @@ export default function Competitors() {
                         <span className="text-xs text-muted-foreground">/100</span>
                       </TableCell>
                       <TableCell className="text-center">
-                        <div className={cn(
-                          "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
-                          trend === "up" && "bg-success/20 text-success",
-                          trend === "down" && "bg-destructive/20 text-destructive",
-                          trend === "neutral" && "bg-secondary text-muted-foreground"
-                        )}>
+                        <div className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium", trend === "up" && "bg-success/20 text-success", trend === "down" && "bg-destructive/20 text-destructive", trend === "neutral" && "bg-secondary text-muted-foreground")}>
                           {trend === "up" && <TrendingUp className="h-3 w-3" />}
                           {trend === "down" && <TrendingDown className="h-3 w-3" />}
                           {trend === "neutral" && <Minus className="h-3 w-3" />}
@@ -204,9 +194,7 @@ export default function Competitors() {
                           <span className="text-sm text-foreground">{entry.sentiment}%</span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-center font-semibold text-foreground">
-                        {entry.citations}
-                      </TableCell>
+                      <TableCell className="text-center font-semibold text-foreground">{entry.citations}</TableCell>
                       <TableCell className="text-center">
                         <Badge variant="outline" className="text-xs">{entry.topLLM}</Badge>
                       </TableCell>
@@ -232,6 +220,11 @@ export default function Competitors() {
             <Button onClick={() => setDialogOpen(true)}>Add Your First Competitor</Button>
           </div>
         )}
+
+        {/* Competitive gap analysis */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+          <CompetitorInsights />
+        </motion.div>
       </div>
     </DashboardLayout>
   );

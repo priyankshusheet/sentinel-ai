@@ -1,76 +1,33 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { Search, Eye, EyeOff, ExternalLink, ChevronDown, TrendingUp, TrendingDown, Minus, FileText, Clock, Plus, Trash2 } from "lucide-react";
+import { Search, Eye, EyeOff, FileText, Clock, Plus, Trash2, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { usePrompts } from "@/hooks/use-prompts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-interface TrackedPrompt {
-  id: string;
-  query: string;
-  category: string | null;
-  is_active: boolean;
-  created_at: string;
-  latest_ranking?: {
-    visibility: string;
-    confidence_score: number | null;
-    citations_found: number | null;
-    checked_at: string;
-    ai_response: string | null;
-    llm_platform: string;
-  } | null;
-}
 
 const categories = ["All", "General", "Product Reviews", "Comparisons", "How-to Guides", "Best Of Lists", "Alternatives"];
 
 export default function Prompts() {
   const { user } = useAuth();
-  const [prompts, setPrompts] = useState<TrackedPrompt[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { prompts, isLoading, addPrompt, deletePrompt } = usePrompts(user?.id);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [expandedPrompt, setExpandedPrompt] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newPrompt, setNewPrompt] = useState({ query: "", category: "General" });
 
-  const fetchPrompts = async () => {
-    if (!user) return;
-    const { data: promptsData } = await supabase.from("tracked_prompts").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
-    if (!promptsData) { setLoading(false); return; }
-
-    // Fetch latest ranking for each prompt
-    const enriched = await Promise.all(promptsData.map(async (p) => {
-      const { data: rankings } = await supabase.from("prompt_rankings").select("*").eq("prompt_id", p.id).order("checked_at", { ascending: false }).limit(1);
-      return { ...p, latest_ranking: rankings?.[0] || null };
-    }));
-    setPrompts(enriched);
-    setLoading(false);
-  };
-
-  useEffect(() => { fetchPrompts(); }, [user]);
-
-  const addPrompt = async () => {
-    if (!user || !newPrompt.query.trim()) return;
-    const { error } = await supabase.from("tracked_prompts").insert({ user_id: user.id, query: newPrompt.query, category: newPrompt.category });
-    if (error) { toast.error(error.message); return; }
-    toast.success("Prompt added!");
+  const handleAddPrompt = async () => {
+    if (!newPrompt.query.trim()) return;
+    await addPrompt(newPrompt);
     setNewPrompt({ query: "", category: "General" });
     setDialogOpen(false);
-    fetchPrompts();
-  };
-
-  const deletePrompt = async (id: string) => {
-    await supabase.from("tracked_prompts").delete().eq("id", id);
-    toast.success("Prompt removed");
-    fetchPrompts();
   };
 
   const filtered = prompts.filter(p => {
@@ -104,7 +61,7 @@ export default function Prompts() {
                     <SelectContent>{categories.filter(c => c !== "All").map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
-                <Button onClick={addPrompt} className="w-full">Track Prompt</Button>
+                <Button onClick={handleAddPrompt} className="w-full">Track Prompt</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -120,14 +77,14 @@ export default function Prompts() {
           </select>
         </div>
 
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-card rounded-xl p-4 border border-border"><p className="text-sm text-muted-foreground">Total Prompts</p><p className="text-2xl font-bold text-foreground">{prompts.length}</p></div>
           <div className="bg-card rounded-xl p-4 border border-border"><p className="text-sm text-muted-foreground">Mentioned</p><p className="text-2xl font-bold text-success">{mentioned}</p></div>
           <div className="bg-card rounded-xl p-4 border border-border"><p className="text-sm text-muted-foreground">Partial</p><p className="text-2xl font-bold text-warning">{partial}</p></div>
           <div className="bg-card rounded-xl p-4 border border-border"><p className="text-sm text-muted-foreground">Not Mentioned</p><p className="text-2xl font-bold text-destructive">{notMentioned}</p></div>
         </div>
 
-        {loading ? (
+        {isLoading ? (
           <div className="text-center py-12 text-muted-foreground">Loading prompts...</div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-12 bg-card rounded-2xl border border-border">
@@ -181,7 +138,7 @@ export default function Prompts() {
                         <p className="text-sm text-muted-foreground mb-4">No analysis results yet. Analysis will run when you configure your AI API key.</p>
                       )}
                       <div className="flex gap-2">
-                        <Button variant="destructive" size="sm" onClick={() => deletePrompt(prompt.id)} className="gap-1"><Trash2 className="h-3 w-3" /> Remove</Button>
+                        <Button variant="destructive" size="sm" onClick={(e) => { e.stopPropagation(); deletePrompt(prompt.id); }} className="gap-1"><Trash2 className="h-3 w-3" /> Remove</Button>
                       </div>
                     </motion.div>
                   )}
