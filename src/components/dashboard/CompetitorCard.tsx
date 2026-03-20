@@ -18,19 +18,19 @@ export function CompetitorCard({ rank, name, domain, score, change, isYou }: Com
     <motion.div
       className={cn(
         "relative flex items-center justify-between rounded-xl p-4 border transition-all hover:border-primary/50",
-        isYou 
-          ? "bg-gradient-to-r from-primary/10 to-accent/10 border-primary/30" 
+        isYou
+          ? "bg-gradient-to-r from-primary/10 to-accent/10 border-primary/30"
           : "bg-card border-border"
       )}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ scale: 1.01 }}
     >
-      {/* Rank */}
-      <div className="flex items-center gap-4">
+      {/* Rank and Company info */}
+      <div className="flex items-center gap-3 min-w-0 flex-1">
         <div
           className={cn(
-            "flex h-10 w-10 items-center justify-center rounded-lg text-sm font-bold",
+            "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-sm font-bold",
             rank === 1 && "bg-yellow-500/20 text-yellow-500",
             rank === 2 && "bg-slate-400/20 text-slate-400",
             rank === 3 && "bg-amber-600/20 text-amber-600",
@@ -40,29 +40,28 @@ export function CompetitorCard({ rank, name, domain, score, change, isYou }: Com
           #{rank}
         </div>
 
-        {/* Company info */}
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-foreground">{name}</span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 truncate">
+            <span className="font-semibold text-foreground truncate">{name}</span>
             {isYou && (
-              <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-primary text-primary-foreground">
+              <span className="flex-shrink-0 px-2 py-0.5 text-[10px] font-bold rounded-full bg-primary text-primary-foreground uppercase tracking-tighter">
                 You
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <span>{domain}</span>
-            <ExternalLink className="h-3 w-3" />
+          <div className="flex items-center gap-1 text-xs text-muted-foreground truncate">
+            <span className="truncate">{domain}</span>
+            <ExternalLink className="h-3 w-3 flex-shrink-0" />
           </div>
         </div>
       </div>
 
       {/* Score and change */}
-      <div className="text-right">
-        <div className="text-2xl font-bold text-foreground">{score}</div>
+      <div className="flex-shrink-0 text-right ml-4">
+        <div className="text-xl font-bold text-foreground leading-none">{score}</div>
         <div
           className={cn(
-            "flex items-center justify-end gap-1 text-sm",
+            "flex items-center justify-end gap-1 text-[11px] mt-1 font-medium",
             trend === "up" && "text-success",
             trend === "down" && "text-destructive",
             trend === "neutral" && "text-muted-foreground"

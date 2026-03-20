@@ -49,7 +49,7 @@ export default function Prompts() {
             <p className="text-muted-foreground mt-1">Track how AI responds to prompts about your brand</p>
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild><Button className="gap-2"><Plus className="h-4 w-4" /> Add Prompt</Button></DialogTrigger>
+            <DialogTrigger asChild><Button className="gap-2 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold shadow-[0_0_15px_rgba(0,212,255,0.4)] border-0"><Plus className="h-4 w-4" /> Add Prompt</Button></DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Track a New Prompt</DialogTitle></DialogHeader>
               <div className="space-y-4 pt-4">
@@ -61,7 +61,7 @@ export default function Prompts() {
                     <SelectContent>{categories.filter(c => c !== "All").map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
-                <Button onClick={handleAddPrompt} className="w-full">Track Prompt</Button>
+                <Button onClick={handleAddPrompt} className="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-semibold shadow-[0_0_15px_rgba(0,212,255,0.4)] border-0">Track Prompt</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -90,7 +90,7 @@ export default function Prompts() {
           <div className="text-center py-12 bg-card rounded-2xl border border-border">
             <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground mb-4">No prompts tracked yet. Start by adding prompts you want to monitor.</p>
-            <Button onClick={() => setDialogOpen(true)}>Add Your First Prompt</Button>
+            <Button onClick={() => setDialogOpen(true)} className="bg-cyan-500 hover:bg-cyan-400 text-black font-semibold shadow-[0_0_15px_rgba(0,212,255,0.4)] border-0">Add Your First Prompt</Button>
           </div>
         ) : (
           <div className="space-y-3">

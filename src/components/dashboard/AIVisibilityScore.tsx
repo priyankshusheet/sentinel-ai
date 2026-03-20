@@ -1,6 +1,8 @@
-import { motion } from "framer-motion";
+import { useRef } from "react";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { TrendingUp, TrendingDown, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAudioEffects } from "@/hooks/use-audio-effects";
 
 interface AIVisibilityScoreProps {
   score: number;

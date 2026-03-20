@@ -1,6 +1,8 @@
-import { motion } from "framer-motion";
+import { useRef } from "react";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { LucideIcon, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAudioEffects } from "@/hooks/use-audio-effects";
 
 interface MetricCardProps {
   title: string;
@@ -12,19 +14,27 @@ interface MetricCardProps {
 }
 
 const variantStyles = {
-  default: "from-secondary to-secondary",
-  primary: "from-primary/20 to-accent/20",
-  success: "from-success/20 to-success/10",
-  warning: "from-warning/20 to-warning/10",
-  destructive: "from-destructive/20 to-destructive/10",
+  default: "border-white/5",
+  primary: "border-cyan-500/20 shadow-[0_0_20px_rgba(0,212,255,0.05)]",
+  success: "border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.05)]",
+  warning: "border-amber-500/20 shadow-[0_0_20px_rgba(245,158,11,0.05)]",
+  destructive: "border-rose-500/20 shadow-[0_0_20px_rgba(239,68,68,0.05)]",
 };
 
 const iconVariantStyles = {
-  default: "bg-secondary text-foreground",
-  primary: "bg-primary/20 text-primary",
-  success: "bg-success/20 text-success",
-  warning: "bg-warning/20 text-warning",
-  destructive: "bg-destructive/20 text-destructive",
+  default: "bg-white/5 text-white border border-white/10",
+  primary: "bg-cyan-500/10 text-cyan-400 drop-shadow-[0_0_10px_rgba(0,212,255,0.8)] border border-cyan-500/20",
+  success: "bg-emerald-500/10 text-emerald-400 drop-shadow-[0_0_10px_rgba(16,185,129,0.8)] border border-emerald-500/20",
+  warning: "bg-amber-500/10 text-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)] border border-amber-500/20",
+  destructive: "bg-rose-500/10 text-rose-400 drop-shadow-[0_0_10px_rgba(239,68,68,0.8)] border border-rose-500/20",
+};
+
+const borderGlowStyles = {
+  default: "group-hover:border-white/20",
+  primary: "animate-pulse-cyan",
+  success: "animate-pulse-emerald",
+  warning: "animate-pulse-amber",
+  destructive: "animate-pulse-rose",
 };
 
 export function MetricCard({
@@ -40,18 +50,15 @@ export function MetricCard({
   return (
     <motion.div
       className={cn(
-        "relative rounded-2xl bg-gradient-to-br p-6 border border-border overflow-hidden",
+        "relative rounded-[24px] glass-panel p-6 overflow-hidden transition-all duration-300",
         variantStyles[variant]
       )}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.02 }}
+      whileHover={{ y: -5 }}
       transition={{ duration: 0.2 }}
     >
-      {/* Background pattern */}
-      <div className="absolute inset-0 bg-card/80" />
-
-      <div className="relative">
+      <div className="relative z-10">
         <div className="flex items-start justify-between">
           <div
             className={cn(
