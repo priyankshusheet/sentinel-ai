@@ -16,7 +16,7 @@ const categories = ["All", "General", "Product Reviews", "Comparisons", "How-to 
 
 export default function Prompts() {
   const { user } = useAuth();
-  const { prompts, isLoading, addPrompt, deletePrompt } = usePrompts(user?.id);
+  const { prompts, isLoading, addPrompt, deletePrompt, analyzePrompt, isAnalyzing } = usePrompts(user?.id);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [expandedPrompt, setExpandedPrompt] = useState<string | null>(null);
@@ -138,6 +138,15 @@ export default function Prompts() {
                         <p className="text-sm text-muted-foreground mb-4">No analysis results yet. Analysis will run when you configure your AI API key.</p>
                       )}
                       <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={(e) => { e.stopPropagation(); analyzePrompt(prompt.id); }} 
+                          disabled={isAnalyzing}
+                          className="gap-1 border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10"
+                        >
+                          {isAnalyzing ? "Analyzing..." : <><Search className="h-3 w-3" /> Analyze Now</>}
+                        </Button>
                         <Button variant="destructive" size="sm" onClick={(e) => { e.stopPropagation(); deletePrompt(prompt.id); }} className="gap-1"><Trash2 className="h-3 w-3" /> Remove</Button>
                       </div>
                     </motion.div>

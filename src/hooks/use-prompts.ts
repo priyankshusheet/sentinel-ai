@@ -94,6 +94,50 @@ export const usePrompts = (userId: string | undefined) => {
     },
   });
 
+  const analyzePromptMutation = useMutation({
+    mutationFn: async (id: string) => {
+      // 1. Get prompt data
+      const { data: prompt, error: promptError } = await supabase
+        .from("tracked_prompts")
+        .select("*")
+        .eq("id", id)
+        .single();
+      
+      if (promptError) throw promptError;
+
+      // 2. Call Python Backend
+      const response = await fetch("http://localhost:8000/analyze/visibility", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: prompt.query, prompt_id: id, user_id: userId })
+      });
+
+      if (!response.ok) throw new Error("Backend analysis failed");
+      const result = await response.json();
+
+      // 3. Store result in Supabase
+      const { error: insertError } = await supabase.from("prompt_rankings").insert({
+        user_id: userId!,
+        prompt_id: id,
+        llm_platform: result.analysis.provider,
+        visibility: result.analysis.analysis?.visibility || "mentioned", // Fallback if format varies
+        confidence_score: result.analysis.analysis?.confidence_score || 0,
+        citations_found: result.analysis.analysis?.citations_found || 0,
+        ai_response: result.analysis.content
+      });
+
+      if (insertError) throw insertError;
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["prompts", userId] });
+      toast.success("Analysis complete!");
+    },
+    onError: (error: any) => {
+      toast.error(`Analysis failed: ${error.message}`);
+    },
+  });
+
   return {
     prompts: promptsQuery.data || [],
     isLoading: promptsQuery.isLoading,
@@ -103,5 +147,7 @@ export const usePrompts = (userId: string | undefined) => {
     isAdding: addPromptMutation.isPending,
     deletePrompt: deletePromptMutation.mutateAsync,
     isDeleting: deletePromptMutation.isPending,
+    analyzePrompt: analyzePromptMutation.mutateAsync,
+    isAnalyzing: analyzePromptMutation.isPending,
   };
 };
