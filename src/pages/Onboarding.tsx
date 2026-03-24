@@ -1,12 +1,13 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useRef } from "react";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, ArrowRight, ArrowLeft, Building2, Globe, Users, Target, Zap, ShoppingCart, GraduationCap, Heart, CheckCircle } from "lucide-react";
+import { Sparkles, ArrowRight, ArrowLeft, Building2, Globe, Users, Target, Zap, ShoppingCart, GraduationCap, Heart, CheckCircle, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAudioEffects } from "@/hooks/use-audio-effects";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -42,6 +43,32 @@ export default function Onboarding() {
   const [selectedGoals, setSelectedGoals] = useState<string[]>(["visibility"]);
   const [saving, setSaving] = useState(false);
   const totalSteps = 5;
+  const { playSound } = useAudioEffects();
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // 3D Tilt Logic
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const mouseXSpring = useSpring(x);
+  const mouseYSpring = useSpring(y);
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["5deg", "-5deg"]);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-5deg", "5deg"]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    x.set(mouseX / width - 0.5);
+    y.set(mouseY / height - 0.5);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
 
   const nextStep = async () => {
     if (step < totalSteps) {
@@ -86,31 +113,41 @@ export default function Onboarding() {
   const addCompetitor = () => { if (competitors.length < 5) setCompetitors([...competitors, ""]); };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-8 bg-background">
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
-      </div>
-
-      <motion.div className="relative z-10 w-full max-w-2xl" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <div className="flex items-center gap-2 mb-8">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
-            <Sparkles className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <span className="text-2xl font-bold text-foreground">Sentinel AI</span>
+    <div className="min-h-screen w-full flex items-center justify-center p-4 sm:p-8 animated-bg text-foreground relative overflow-hidden">
+      <motion.div className="relative z-10 w-full max-w-[560px]" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+        <div className="flex items-center gap-3 mb-8 justify-center opacity-80">
+          <Shield className="h-6 w-6 text-cyan-400 drop-shadow-[0_0_8px_rgba(0,212,255,0.8)]" />
+          <span className="text-sm font-bold tracking-widest text-[#8ba3c7] uppercase">Sentinel System</span>
         </div>
 
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-muted-foreground">Step {step} of {totalSteps}</span>
-            <span className="text-sm text-muted-foreground">{Math.round((step / totalSteps) * 100)}% complete</span>
+        <div className="mb-8 px-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[10px] font-bold tracking-widest text-[#8ba3c7] uppercase">Step {step} of {totalSteps}</span>
+            <span className="text-[10px] font-bold tracking-widest text-cyan-400 uppercase">{Math.round((step / totalSteps) * 100)}% complete</span>
           </div>
-          <div className="h-2 rounded-full bg-secondary overflow-hidden">
-            <motion.div className="h-full bg-gradient-to-r from-primary to-accent" initial={{ width: 0 }} animate={{ width: `${(step / totalSteps) * 100}%` }} transition={{ duration: 0.3 }} />
+          <div className="h-1 rounded-full bg-white/10 overflow-hidden">
+            <motion.div className="h-full bg-gradient-to-r from-blue-600 to-cyan-500 shadow-[0_0_8px_rgba(0,212,255,0.8)]" initial={{ width: 0 }} animate={{ width: `${(step / totalSteps) * 100}%` }} transition={{ duration: 0.3 }} />
           </div>
         </div>
 
-        <div className="bg-card rounded-2xl border border-border p-8">
+        <motion.div 
+          ref={cardRef}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+          style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+          className="glass rounded-[28px] border-cyan-400/10 p-8 sm:p-10 shadow-2xl relative overflow-hidden"
+          onMouseEnter={() => playSound('hover')}
+        >
+          {/* Energy Pulse Border (Traveling Light) */}
+          <div className="absolute inset-0 rounded-[28px] overflow-hidden pointer-events-none z-0">
+             <motion.div 
+              className="absolute w-[40%] h-[1.5px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-80"
+              animate={{ left: ["-100%", "150%"], top: ["0%", "0%", "100%", "100%", "0%"] }}
+              transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+            />
+          </div>
+
+          <div className="relative z-10">
           {step === 1 && (
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
               <div className="flex items-center gap-3 mb-6">
@@ -195,14 +232,26 @@ export default function Onboarding() {
             </motion.div>
           )}
 
-          <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
-            <Button variant="ghost" onClick={prevStep} disabled={step === 1} className="gap-2"><ArrowLeft className="h-4 w-4" /> Back</Button>
-            <Button onClick={nextStep} className="gap-2 bg-primary hover:bg-primary/90" disabled={saving}>
+          <div className="flex items-center justify-between mt-8 pt-8 border-t border-cyan-400/10 relative z-10">
+            <Button 
+              variant="ghost" 
+              onClick={() => { playSound('click'); prevStep(); }} 
+              disabled={step === 1} 
+              className="gap-2 text-[#8ba3c7] hover:text-cyan-400 hover:bg-cyan-500/10 rounded-xl"
+            >
+              <ArrowLeft className="h-4 w-4" /> Back
+            </Button>
+            <Button 
+              onClick={() => { playSound('click'); nextStep(); }} 
+              className="gap-2 h-11 px-6 rounded-xl font-bold text-[14px] bg-gradient-to-r from-blue-600 to-cyan-500 hover:shadow-[0_0_20px_rgba(0,212,255,0.4)] transition-all duration-300 border-0 text-white" 
+              disabled={saving}
+            >
               {saving ? "Saving..." : step === totalSteps ? "Launch Dashboard" : "Continue"}
               <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
+      </motion.div>
       </motion.div>
     </div>
   );

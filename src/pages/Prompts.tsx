@@ -16,7 +16,7 @@ const categories = ["All", "General", "Product Reviews", "Comparisons", "How-to 
 
 export default function Prompts() {
   const { user } = useAuth();
-  const { prompts, isLoading, addPrompt, deletePrompt } = usePrompts(user?.id);
+  const { prompts, isLoading, addPrompt, deletePrompt, analyzePrompt, isAnalyzing } = usePrompts(user?.id);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [expandedPrompt, setExpandedPrompt] = useState<string | null>(null);
@@ -49,7 +49,7 @@ export default function Prompts() {
             <p className="text-muted-foreground mt-1">Track how AI responds to prompts about your brand</p>
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild><Button className="gap-2"><Plus className="h-4 w-4" /> Add Prompt</Button></DialogTrigger>
+            <DialogTrigger asChild><Button className="gap-2 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold shadow-[0_0_15px_rgba(0,212,255,0.4)] border-0"><Plus className="h-4 w-4" /> Add Prompt</Button></DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Track a New Prompt</DialogTitle></DialogHeader>
               <div className="space-y-4 pt-4">
@@ -61,7 +61,7 @@ export default function Prompts() {
                     <SelectContent>{categories.filter(c => c !== "All").map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
-                <Button onClick={handleAddPrompt} className="w-full">Track Prompt</Button>
+                <Button onClick={handleAddPrompt} className="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-semibold shadow-[0_0_15px_rgba(0,212,255,0.4)] border-0">Track Prompt</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -90,7 +90,7 @@ export default function Prompts() {
           <div className="text-center py-12 bg-card rounded-2xl border border-border">
             <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground mb-4">No prompts tracked yet. Start by adding prompts you want to monitor.</p>
-            <Button onClick={() => setDialogOpen(true)}>Add Your First Prompt</Button>
+            <Button onClick={() => setDialogOpen(true)} className="bg-cyan-500 hover:bg-cyan-400 text-black font-semibold shadow-[0_0_15px_rgba(0,212,255,0.4)] border-0">Add Your First Prompt</Button>
           </div>
         ) : (
           <div className="space-y-3">
@@ -138,6 +138,15 @@ export default function Prompts() {
                         <p className="text-sm text-muted-foreground mb-4">No analysis results yet. Analysis will run when you configure your AI API key.</p>
                       )}
                       <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={(e) => { e.stopPropagation(); analyzePrompt(prompt.id); }} 
+                          disabled={isAnalyzing}
+                          className="gap-1 border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10"
+                        >
+                          {isAnalyzing ? "Analyzing..." : <><Search className="h-3 w-3" /> Analyze Now</>}
+                        </Button>
                         <Button variant="destructive" size="sm" onClick={(e) => { e.stopPropagation(); deletePrompt(prompt.id); }} className="gap-1"><Trash2 className="h-3 w-3" /> Remove</Button>
                       </div>
                     </motion.div>

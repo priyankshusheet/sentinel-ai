@@ -1,17 +1,21 @@
-import { motion } from "framer-motion";
+import { useRef } from "react";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { useAudioEffects } from "@/hooks/use-audio-effects";
+import { cn } from "@/lib/utils";
 
 interface LLMData {
   name: string;
   icon: string;
   value: number;
   color: string;
+  glow: string;
 }
 
 const llmData: LLMData[] = [
-  { name: "ChatGPT", icon: "🤖", value: 42, color: "from-emerald-500 to-emerald-600" },
-  { name: "Claude", icon: "🧠", value: 28, color: "from-orange-500 to-orange-600" },
-  { name: "Gemini", icon: "✨", value: 18, color: "from-blue-500 to-blue-600" },
-  { name: "Perplexity", icon: "🔍", value: 12, color: "from-purple-500 to-purple-600" },
+  { name: "ChatGPT", icon: "🤖", value: 42, color: "from-emerald-400 to-emerald-600", glow: "shadow-[0_0_15px_rgba(16,185,129,0.5)]" },
+  { name: "Claude", icon: "🧠", value: 28, color: "from-orange-400 to-orange-600", glow: "shadow-[0_0_15px_rgba(249,115,22,0.5)]" },
+  { name: "Gemini", icon: "✨", value: 18, color: "from-blue-400 to-blue-600", glow: "shadow-[0_0_15px_rgba(37,99,235,0.5)]" },
+  { name: "Perplexity", icon: "🔍", value: 12, color: "from-purple-400 to-purple-600", glow: "shadow-[0_0_15px_rgba(139,92,246,0.5)]" },
 ];
 
 export function ShareOfVoice() {

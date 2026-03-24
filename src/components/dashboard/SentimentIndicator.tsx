@@ -1,5 +1,8 @@
-import { motion } from "framer-motion";
+import { useRef } from "react";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Smile, Meh, Frown } from "lucide-react";
+import { useAudioEffects } from "@/hooks/use-audio-effects";
+import { cn } from "@/lib/utils";
 
 interface SentimentData {
   positive: number;
@@ -114,5 +117,33 @@ export function SentimentIndicator() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+function SentimentRow({ icon: Icon, value, color, labelColor, delay }: any) {
+  return (
+    <motion.div
+      className="flex items-center gap-4 group/row"
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay }}
+    >
+      <Icon className={cn("h-5 w-5 transition-transform duration-300 group-hover/row:scale-120", labelColor)} />
+      <div className="flex-1">
+        <div className="h-2 rounded-full bg-white/5 border border-white/5 overflow-hidden">
+          <motion.div
+            className={cn("h-full rounded-full relative", color)}
+            initial={{ width: 0 }}
+            animate={{ width: `${value}%` }}
+            transition={{ duration: 1, delay: delay + 0.2, ease: "circOut" }}
+          >
+            <div className="absolute inset-0 bg-white/20 blur-[2px] opacity-30" />
+          </motion.div>
+        </div>
+      </div>
+      <span className={cn("text-xs font-bold w-12 text-right tracking-tight", labelColor)}>
+        {value}%
+      </span>
+    </motion.div>
   );
 }

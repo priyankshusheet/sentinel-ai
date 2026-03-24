@@ -83,7 +83,7 @@ export default function Citations() {
                 <div className="space-y-2"><Label>Source Name</Label><Input value={newCitation.source_name} onChange={e => setNewCitation(p => ({ ...p, source_name: e.target.value }))} placeholder="e.g. G2 Reviews" /></div>
                 <div className="space-y-2"><Label>Source URL</Label><Input value={newCitation.source_url} onChange={e => setNewCitation(p => ({ ...p, source_url: e.target.value }))} placeholder="https://g2.com/products/..." /></div>
                 <div className="flex items-center gap-2"><Switch checked={newCitation.is_owned} onCheckedChange={v => setNewCitation(p => ({ ...p, is_owned: v }))} /><Label>Owned source</Label></div>
-                <Button onClick={addCitation} className="w-full">Add Citation</Button>
+                <Button onClick={addCitation} className="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-semibold shadow-[0_0_15px_rgba(0,212,255,0.4)] border-0">Add Citation</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -100,7 +100,7 @@ export default function Citations() {
         ) : citations.length === 0 ? (
           <div className="text-center py-12 bg-card rounded-2xl border border-border">
             <p className="text-muted-foreground mb-4">No citations tracked yet. Add your first citation source.</p>
-            <Button onClick={() => setDialogOpen(true)}>Add Citation</Button>
+            <Button onClick={() => setDialogOpen(true)} className="bg-cyan-500 hover:bg-cyan-400 text-black font-semibold shadow-[0_0_15px_rgba(0,212,255,0.4)] border-0">Add Citation</Button>
           </div>
         ) : (
           <div className="rounded-2xl bg-card border border-border p-6 space-y-3">

@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Users, TrendingUp, TrendingDown, Minus, Plus, Trash2, ExternalLink, BarChart3, MessageSquare, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useCompetitors } from "@/hooks/use-competitors";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
@@ -34,19 +35,15 @@ function generateBenchmark(name: string, index: number) {
 
 export default function Competitors() {
   const { user } = useAuth();
-  const [competitors, setCompetitors] = useState<Competitor[]>([]);
+  const { competitors, isLoading: hookLoading, runBenchmark, isBenchmarking } = useCompetitors(user?.id);
   const [loading, setLoading] = useState(true);
+  const [benchmarkData, setBenchmarkData] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newComp, setNewComp] = useState({ name: "", domain: "" });
 
-  const fetchCompetitors = async () => {
-    if (!user) return;
-    const { data } = await supabase.from("competitors").select("*").eq("user_id", user.id).order("created_at", { ascending: true });
-    setCompetitors(data || []);
-    setLoading(false);
-  };
-
-  useEffect(() => { fetchCompetitors(); }, [user]);
+  useEffect(() => {
+    if (!hookLoading) setLoading(false);
+  }, [hookLoading]);
 
   const addCompetitor = async () => {
     if (!user || !newComp.name.trim() || !newComp.domain.trim()) return;
@@ -55,13 +52,30 @@ export default function Competitors() {
     toast.success("Competitor added!");
     setNewComp({ name: "", domain: "" });
     setDialogOpen(false);
-    fetchCompetitors();
   };
 
   const deleteCompetitor = async (id: string) => {
     await supabase.from("competitors").delete().eq("id", id);
     toast.success("Competitor removed");
-    fetchCompetitors();
+  };
+
+  const handleBenchmark = async () => {
+    if (!user) return;
+    toast.info("Starting competitive benchmarking...");
+    try {
+      const { data: profile } = await supabase.from("profiles").select("website_url").eq("user_id", user.id).single();
+      const domain = profile?.website_url || "yoursite.com";
+      
+      const result = await runBenchmark({ 
+        brandDomain: domain, 
+        competitors: competitors.map(c => c.domain),
+        prompts: ["best aeo tool", "generative engine optimization"] 
+      });
+      setBenchmarkData(result.benchmark);
+      toast.success("Benchmark complete!");
+    } catch (e: any) {
+      toast.error(e.message);
+    }
   };
 
   const yourBrand = { name: "Your Brand", domain: "", visibility: 78, visibilityChange: 5.2, sentiment: 72, citations: 487, topLLM: "ChatGPT" };
@@ -85,25 +99,30 @@ export default function Competitors() {
             <h1 className="text-3xl font-bold text-foreground">Competitors</h1>
             <p className="text-muted-foreground mt-1">Side-by-side benchmarking across AI visibility, sentiment & citations</p>
           </div>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2"><Plus className="h-4 w-4" /> Add Competitor</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Add a Competitor</DialogTitle></DialogHeader>
-              <div className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <Label>Company Name</Label>
-                  <Input value={newComp.name} onChange={e => setNewComp(p => ({ ...p, name: e.target.value }))} placeholder="Acme Corp" />
+          <div className="flex gap-2">
+            <Button onClick={handleBenchmark} disabled={isBenchmarking} variant="outline" className="gap-2 border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10">
+              <BarChart3 className="h-4 w-4" /> {isBenchmarking ? "Benchmarking..." : "Run Benchmark"}
+            </Button>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2"><Plus className="h-4 w-4" /> Add Competitor</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Add a Competitor</DialogTitle></DialogHeader>
+                <div className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label>Company Name</Label>
+                    <Input value={newComp.name} onChange={e => setNewComp(p => ({ ...p, name: e.target.value }))} placeholder="Acme Corp" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Domain</Label>
+                    <Input value={newComp.domain} onChange={e => setNewComp(p => ({ ...p, domain: e.target.value }))} placeholder="acme.com" />
+                  </div>
+                  <Button onClick={addCompetitor} className="w-full">Add Competitor</Button>
                 </div>
-                <div className="space-y-2">
-                  <Label>Domain</Label>
-                  <Input value={newComp.domain} onChange={e => setNewComp(p => ({ ...p, domain: e.target.value }))} placeholder="acme.com" />
-                </div>
-                <Button onClick={addCompetitor} className="w-full">Add Competitor</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
         {/* Summary cards */}

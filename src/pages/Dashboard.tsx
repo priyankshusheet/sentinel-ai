@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { CommunityIntelPanel } from "@/components/dashboard/CommunityIntelPanel";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { AIVisibilityScore } from "@/components/dashboard/AIVisibilityScore";
 import { ShareOfVoice } from "@/components/dashboard/ShareOfVoice";
@@ -9,6 +10,9 @@ import { PromptCoverageChart } from "@/components/dashboard/PromptCoverageChart"
 import { SentimentIndicator } from "@/components/dashboard/SentimentIndicator";
 import { CitationNodeMap } from "@/components/dashboard/CitationNodeMap";
 import { VisibilityTrendChart } from "@/components/dashboard/VisibilityTrendChart";
+import { useDashboardMetrics } from "@/hooks/use-dashboard-metrics";
+import { useAuth } from "@/contexts/AuthContext";
+
 import { 
   Search, 
   FileText, 
@@ -41,6 +45,9 @@ const itemVariants = {
 };
 
 export default function Dashboard() {
+  const { user } = useAuth();
+  const metrics = useDashboardMetrics(user?.id);
+
   return (
     <DashboardLayout>
       <motion.div
@@ -59,7 +66,7 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Activity className="h-4 w-4 text-success animate-pulse" />
-            Last synced 5 min ago
+            {metrics.loading ? "Syncing..." : "Live Sync"}
           </div>
         </motion.div>
 
@@ -67,30 +74,27 @@ export default function Dashboard() {
         <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <MetricCard
             title="Tracked Prompts"
-            value="1,284"
-            change={12}
+            value={metrics.trackedPrompts.toString()}
             icon={Search}
             variant="primary"
           />
           <MetricCard
             title="Active Citations"
-            value="487"
-            change={8}
+            value={metrics.activeCitations.toString()}
             icon={FileText}
             variant="success"
           />
           <MetricCard
             title="Content Gaps"
-            value="23"
-            change={-15}
+            value={metrics.contentGaps.toString()}
             icon={Zap}
             variant="warning"
           />
           <MetricCard
             title="Competitors"
-            value="5"
+            value={metrics.competitors.toString()}
             icon={Users}
-            description="Tracking 5 competitors"
+            description={`Tracking ${metrics.competitors} competitors`}
           />
         </motion.div>
 
@@ -98,7 +102,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left column - AI Score */}
           <motion.div variants={itemVariants}>
-            <AIVisibilityScore score={78} change={5.2} trend="up" />
+            <AIVisibilityScore score={metrics.visibilityScore} change={5.2} trend="up" />
           </motion.div>
 
           {/* Middle column - Share of Voice */}
@@ -148,9 +152,14 @@ export default function Dashboard() {
           </motion.div>
         </div>
 
-        {/* Alerts */}
+        {/* High Priority Alerts */}
         <motion.div variants={itemVariants}>
           <AlertsPanel />
+        </motion.div>
+
+        {/* Community Intel */}
+        <motion.div variants={itemVariants}>
+          <CommunityIntelPanel keywords={["generative engine optimization", "AEO tools", "AI search marketing"]} />
         </motion.div>
       </motion.div>
     </DashboardLayout>
