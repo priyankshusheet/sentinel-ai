@@ -55,20 +55,30 @@ const navigation: NavItem[] = [
     badge: "5 fixes",
   },
   {
-    title: "Programmatic SEO",
-    href: "/programmatic-seo",
-    icon: Globe,
-  },
-  {
     title: "Competitors",
     href: "/competitors",
     icon: Users,
   },
   {
     title: "AI Agents",
-    href: "/ai-agents",
+    href: "/agents",
     icon: Bot,
-    badge: "Beta",
+    badge: "New",
+  },
+  {
+    title: "Intelligence Graph",
+    href: "/intelligence",
+    icon: Sparkles,
+  },
+  {
+    title: "Programmatic SEO",
+    href: "/seo",
+    icon: Globe,
+  },
+  {
+    title: "A/B Testing",
+    href: "/prompts/testing",
+    icon: TrendingUp,
   },
   {
     title: "Integrations",
@@ -100,7 +110,6 @@ export function AppSidebar() {
       transition={{ duration: 0.2, ease: "easeInOut" }}
       className="flex h-screen flex-col border-r border-white/5 bg-transparent relative z-20"
     >
-      {/* Logo */}
       <div className="flex h-[88px] items-center justify-between px-6">
         <AnimatePresence mode="wait">
           {!collapsed && (
@@ -127,7 +136,6 @@ export function AppSidebar() {
         </button>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 overflow-y-auto p-3 space-y-1">
         {navigation.map((item) => {
           const isActive = location.pathname === item.href;
@@ -178,7 +186,6 @@ export function AppSidebar() {
         })}
       </nav>
 
-      {/* Pro Tip Widget */}
       <AnimatePresence>
         {!collapsed && (
           <motion.div
@@ -199,7 +206,6 @@ export function AppSidebar() {
         )}
       </AnimatePresence>
 
-      {/* User Section */}
       <div className="border-t border-cyan-400/10 p-4">
         <div className="flex items-center gap-3 rounded-xl px-2 py-2">
           <div className="h-9 w-9 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-sm font-semibold text-white shadow-[0_0_10px_rgba(0,212,255,0.3)]">

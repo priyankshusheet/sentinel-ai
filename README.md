@@ -86,6 +86,7 @@ Sentinel AI is an intelligent analytics and optimization platform designed to he
 ### Architecture Components
 
 #### 1. **Frontend Layer** (React + TypeScript + Vite)
+
 - **Dashboard**: Central analytics hub displaying key metrics
 - **Prompts Management**: Interface for managing and testing prompts
 - **Alerts Panel**: Real-time notifications and updates
@@ -93,11 +94,13 @@ Sentinel AI is an intelligent analytics and optimization platform designed to he
 - **UI Components**: Shadcn/ui component library with Tailwind styling
 
 #### 2. **Backend Service Layer** (FastAPI + Python)
+
 - **Analytics Module** ("The Eyes"): Prompt ranking, visibility metrics, sentiment analysis
 - **Optimization Module** ("The Hands"): Schema auditing, content gap analysis, recommendations
 - **Strategy Module** ("The Brain"): Community sentiment, agentic readiness assessment
 
 #### 3. **Data Layer**
+
 - **PostgreSQL**: Primary relational database for user data, prompts, metrics, and alerts
 - **Pinecone Vector DB**: Semantic search and RAG (Retrieval-Augmented Generation) capabilities
 - **External APIs**: Web scraping, content analysis, and third-party integrations
@@ -108,7 +111,7 @@ Sentinel AI is an intelligent analytics and optimization platform designed to he
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                      USER STARTS APPLICATION                     │
+│                      USER STARTS APPLICATION                    │
 └────────────────────────────┬────────────────────────────────────┘
                              │
                              ▼
@@ -123,10 +126,10 @@ Sentinel AI is an intelligent analytics and optimization platform designed to he
                     └────────────┬──────────────┘
                                  │
                     ┌────────────▼──────────────┐
-                    │   Dashboard Landing      │
-                    │   - AI Visibility Score  │
-                    │   - Key Metrics          │
-                    │   - Recent Alerts        │
+                    │   Dashboard Landing       │
+                    │   - AI Visibility Score   │
+                    │   - Key Metrics           │
+                    │   - Recent Alerts         │
                     └────────────┬──────────────┘
                                  │
         ┌────────────────────────┼────────────────────────────┐
@@ -263,15 +266,15 @@ Sentinel AI is an intelligent analytics and optimization platform designed to he
 ```mermaid
 graph TB
     Input["User Input/<br/>System Event"]
-    
+
     subgraph Modules["CORE MODULES"]
         Eyes["THE EYES<br/>(Analytics Engine)<br/>• Visibility Score<br/>• Sentiment Analysis<br/>• Prompt Rankings<br/>• Citation Ownership"]
-        
+
         Hands["THE HANDS<br/>(Optimization Suite)<br/>• Schema Audit<br/>• Content Gap Analysis<br/>• Prompt Testing"]
-        
+
         Brain["THE BRAIN<br/>(Strategy Engine)<br/>• Community Pulse<br/>• Competitive Analysis<br/>• Agentic Readiness"]
     end
-    
+
     Eyes -->|Metrics & Data| Brain
     Eyes -->|Visibility Insights| Hands
     Hands -->|Gap Analysis| Brain
@@ -279,7 +282,7 @@ graph TB
     Input --> Eyes
     Input --> Hands
     Input --> Brain
-    
+
     Eyes --> Output["Dashboards &<br/>User Interface"]
     Hands --> Output
     Brain --> Output
@@ -290,34 +293,34 @@ graph TB
 ```mermaid
 graph TB
     API["API Gateway<br/>Base URL: /api/v1"]
-    
+
     subgraph Analytics["/analytics - THE EYES"]
         A1["GET /visibility<br/>Get AI visibility score"]
         A2["GET /sentiment<br/>Analyze sentiment"]
         A3["GET /rankings<br/>Get prompt rankings"]
         A4["GET /citations<br/>Citation ownership"]
     end
-    
+
     subgraph Optimization["/optimization - THE HANDS"]
         O1["POST /schema-audit<br/>Audit schema markup"]
         O2["GET /content-gaps<br/>Find content gaps"]
         O3["POST /test-prompt<br/>A/B test prompts"]
         O4["GET /recommendations<br/>Get recommendations"]
     end
-    
+
     subgraph Strategy["/strategy - THE BRAIN"]
         S1["GET /community-pulse<br/>Community sentiment"]
         S2["GET /competitive-analysis<br/>Competitor metrics"]
         S3["GET /agentic-readiness<br/>Agentic assessment"]
         S4["GET /trends<br/>Market trends"]
     end
-    
+
     subgraph Auth["/auth"]
         AU1["POST /login"]
         AU2["POST /signup"]
         AU3["POST /logout"]
     end
-    
+
     API --> Analytics
     API --> Optimization
     API --> Strategy
@@ -335,7 +338,7 @@ erDiagram
     PROMPTS ||--o{ SENTIMENT : "has"
     PROMPTS ||--o{ TEST_RESULTS : "produces"
     ALERTS ||--o{ ALERT_RULES : "uses"
-    
+
     USERS {
         int user_id PK
         string email UK
@@ -344,7 +347,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     PROMPTS {
         int prompt_id PK
         int user_id FK
@@ -353,7 +356,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     RANKINGS {
         int ranking_id PK
         int prompt_id FK
@@ -362,7 +365,7 @@ erDiagram
         string engine
         timestamp measured_at
     }
-    
+
     SENTIMENT {
         int sentiment_id PK
         int prompt_id FK
@@ -370,7 +373,7 @@ erDiagram
         string analysis
         timestamp analyzed_at
     }
-    
+
     TEST_RESULTS {
         int test_id PK
         int prompt_id FK
@@ -380,7 +383,7 @@ erDiagram
         float performance_b
         timestamp created_at
     }
-    
+
     ALERTS {
         int alert_id PK
         int user_id FK
@@ -389,7 +392,7 @@ erDiagram
         boolean is_read
         timestamp created_at
     }
-    
+
     ALERT_RULES {
         int rule_id PK
         int alert_id FK
@@ -397,7 +400,7 @@ erDiagram
         float threshold
         boolean is_active
     }
-    
+
     REPORTS {
         int report_id PK
         int user_id FK
@@ -412,29 +415,29 @@ erDiagram
 ```mermaid
 graph TB
     Global["Global State<br/>Context API/Redux"]
-    
+
     subgraph DashboardState["Dashboard State"]
         DS1["visibilityScore"]
         DS2["metrics"]
         DS3["alerts"]
     end
-    
+
     subgraph PromptsState["Prompts State"]
         PS1["promptList"]
         PS2["selectedPrompt"]
         PS3["testResults"]
     end
-    
+
     subgraph UIState["UI State"]
         US1["sidebarOpen"]
         US2["activeTab"]
         US3["theme"]
     end
-    
+
     Global --> DashboardState
     Global --> PromptsState
     Global --> UIState
-    
+
     DashboardState --> Components1["Dashboard Component<br/>MetricCard<br/>AlertsPanel<br/>VisibilityScore"]
     PromptsState --> Components2["Prompts Component<br/>PromptList<br/>PromptTest<br/>Results"]
     UIState --> Components3["Layout Components<br/>Sidebar<br/>TopBar<br/>Navigation"]
@@ -451,17 +454,17 @@ graph TD
     Token["Generate JWT Token"]
     Store["Store in localStorage"]
     Dashboard["Redirect to Dashboard"]
-    
+
     Middleware["Request Middleware<br/>Validate Token"]
     Protected["Protected Routes"]
-    
+
     User -->|Enter Credentials| Login
     Login -->|Submit| Verify
     Verify -->|Query| DB
     DB -->|Valid?| Token
     Token -->|Create| Store
     Store --> Dashboard
-    
+
     Dashboard -->|API Request| Middleware
     Middleware -->|Valid Token?| Protected
     Protected -->|Access Granted| API["Backend API"]
@@ -473,20 +476,26 @@ graph TD
 ## Module Breakdown
 
 ### Module 1: "The Eyes" (Analytics Engine)
+
 **Responsibility**: Monitor and analyze AI visibility across engines
+
 - **Visibility Score**: Aggregate metric showing presence in generative engines
 - **Sentiment Analysis**: Analyze sentiment of citations and mentions
 - **Prompt Rankings**: Track how specific prompts rank across engines
 - **Citation Ownership**: Identify brand ownership of citations
 
 ### Module 2: "The Hands" (Optimization Suite)
+
 **Responsibility**: Provide actionable optimization recommendations
+
 - **Schema Audit**: Analyze and recommend structured data improvements
 - **Content Gap Analysis**: Identify missing content opportunities
 - **Prompt Testing**: Run A/B tests on different prompt variations
 
 ### Module 3: "The Brain" (Strategy)
+
 **Responsibility**: Provide strategic insights and readiness assessments
+
 - **Community Pulse**: Monitor community sentiment and trends
 - **Competitive Analysis**: Track competitor positioning and performance
 - **Agentic Readiness**: Assess platform readiness for agentic interactions
@@ -496,9 +505,11 @@ graph TD
 ## Implementation Plan
 
 ### Goal Description
+
 Build a high-fidelity prototype for "SENTINEL AI," a GEO (Generative Engine Optimization) platform. The system will feature a modern React dashboard and a Python FastAPI backend to handle SEO/AEO analytics and optimization tasks.
 
 ### User Review Required
+
 > [!IMPORTANT]
 > This is a prototype build. Actual integration with live LLM APIs (OpenAI, Anthropic) and Vector Databases (Pinecone) will be architected but may use mock data for initial UI/UX demonstration if API keys are not provided.
 > The "Citation Node Map" will be implemented using a graph visualization library (e.g., `react-force-graph` or `recharts` dependent on complexity).
@@ -506,11 +517,14 @@ Build a high-fidelity prototype for "SENTINEL AI," a GEO (Generative Engine Opti
 ### Proposed Changes
 
 #### Project Structure
+
 Root directory: `/sentinel-ai`
+
 - `backend/`: FastAPI Python application
 - `frontend/`: React Vite application
 
 #### Backend [Python/FastAPI]
+
 **[NEW] `backend/requirements.txt`**
 Dependencies: `fastapi`, `uvicorn`, `sqlalchemy`, `pydantic`, `beautifulsoup4`, `requests`, `python-dotenv`.
 
@@ -518,15 +532,18 @@ Dependencies: `fastapi`, `uvicorn`, `sqlalchemy`, `pydantic`, `beautifulsoup4`, 
 Entry point for the API.
 
 **[NEW] `backend/app/api/`**
+
 - `routes/analytics.py`: Endpoints for "The Eyes" (Prompt ranking, Sentiment).
 - `routes/optimization.py`: Endpoints for "The Hands" (Schema audit, Content gap).
 - `routes/strategy.py`: Endpoints for "The Brain" (Community pulse, Agentic readiness).
 
 **[NEW] `backend/app/services/`**
+
 - `llm_service.py`: Stub/Interface for LLM interactions.
 - `scraper_service.py`: Logic for parsing HTML/Schema.
 
 #### Frontend [React/Vite/Tailwind]
+
 **[NEW] `frontend/package.json`**
 Dependencies: `react`, `react-dom`, `lucide-react`, `recharts`, `framer-motion` (for animations), `clsx`, `tailwind-merge`.
 
@@ -534,14 +551,17 @@ Dependencies: `react`, `react-dom`, `lucide-react`, `recharts`, `framer-motion` 
 Configuration for "Deep Navy" (#0a192f or similar) and "Electric Teal" (#64ffda).
 
 **[NEW] `frontend/src/components/layout/`**
+
 - `Sidebar.tsx`: Navigation.
 - `DashboardLayout.tsx`: Main wrapper.
 
 **[NEW] `frontend/src/pages/`**
+
 - `Dashboard.tsx`: The "Commander" view.
 - `Analytics.tsx`: Detailed data views.
 
 **[NEW] `frontend/src/components/dashboard/`**
+
 - `VisibilityMeter.tsx`: Gauge chart.
 - `CitationNodeMap.tsx`: Visual graph component.
 - `RevenueWidget.tsx`: Stats display.
@@ -550,10 +570,12 @@ Configuration for "Deep Navy" (#0a192f or similar) and "Electric Teal" (#64ffda)
 ### Verification Plan
 
 #### Automated Tests
+
 - Backend: Run `pytest` (if added) or manual curl requests to endpoints.
 - Frontend: Run `npm run dev` and verify UI renders.
 
 #### Manual Verification
+
 - Start Backend: `uvicorn app.main:app --reload`
 - Start Frontend: `npm run dev`
 - User walkthrough of the specific Dashboard features (Visibility Meter, Graph, Sidebar).

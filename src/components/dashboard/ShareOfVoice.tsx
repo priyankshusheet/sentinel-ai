@@ -1,24 +1,74 @@
-import { useRef } from "react";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { useAudioEffects } from "@/hooks/use-audio-effects";
-import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { Loader2 } from "lucide-react";
 
 interface LLMData {
   name: string;
   icon: string;
   value: number;
   color: string;
-  glow: string;
 }
 
-const llmData: LLMData[] = [
-  { name: "ChatGPT", icon: "🤖", value: 42, color: "from-emerald-400 to-emerald-600", glow: "shadow-[0_0_15px_rgba(16,185,129,0.5)]" },
-  { name: "Claude", icon: "🧠", value: 28, color: "from-orange-400 to-orange-600", glow: "shadow-[0_0_15px_rgba(249,115,22,0.5)]" },
-  { name: "Gemini", icon: "✨", value: 18, color: "from-blue-400 to-blue-600", glow: "shadow-[0_0_15px_rgba(37,99,235,0.5)]" },
-  { name: "Perplexity", icon: "🔍", value: 12, color: "from-purple-400 to-purple-600", glow: "shadow-[0_0_15px_rgba(139,92,246,0.5)]" },
-];
+const PLATFORM_META: Record<string, { icon: string, color: string }> = {
+  "ChatGPT": { icon: "🤖", color: "from-emerald-400 to-emerald-600" },
+  "Claude": { icon: "🧠", color: "from-orange-400 to-orange-600" },
+  "Gemini": { icon: "✨", color: "from-blue-400 to-blue-600" },
+  "Perplexity": { icon: "🔍", color: "from-purple-400 to-purple-600" },
+  "OpenRouter": { icon: "🔌", color: "from-pink-400 to-pink-600" },
+  "Groq": { icon: "⚡", color: "from-yellow-400 to-yellow-600" },
+};
 
 export function ShareOfVoice() {
+  const { user } = useAuth();
+  const [data, setData] = useState<LLMData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user) return;
+      setLoading(true);
+      
+      const { data: rankings, error } = await supabase
+        .from("prompt_rankings")
+        .select("llm_platform")
+        .eq("user_id", user.id);
+
+      if (error) {
+        console.error("Error fetching SOV:", error);
+        setLoading(false);
+        return;
+      }
+
+      const counts: Record<string, number> = {};
+      (rankings || []).forEach(r => {
+        counts[r.llm_platform] = (counts[r.llm_platform] || 0) + 1;
+      });
+
+      const total = rankings?.length || 1;
+      const chartData = Object.entries(counts).map(([name, count]) => ({
+        name,
+        icon: PLATFORM_META[name]?.icon || "🤖",
+        value: Math.round((count / total) * 100),
+        color: PLATFORM_META[name]?.color || "from-gray-400 to-gray-600",
+      })).sort((a, b) => b.value - a.value);
+
+      setData(chartData);
+      setLoading(false);
+    };
+
+    fetchData();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="rounded-2xl bg-card p-6 border border-border h-[350px] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-2xl bg-card p-6 border border-border">
       <div className="flex items-center justify-between mb-6">
@@ -26,16 +76,11 @@ export function ShareOfVoice() {
           <h3 className="text-lg font-semibold text-foreground">Share of Voice</h3>
           <p className="text-sm text-muted-foreground">Brand visibility across AI platforms</p>
         </div>
-        <select className="text-sm bg-secondary border-none rounded-lg px-3 py-1.5 text-foreground">
-          <option>Last 7 days</option>
-          <option>Last 30 days</option>
-          <option>Last 90 days</option>
-        </select>
       </div>
 
       {/* Stacked bar */}
       <div className="h-8 rounded-full bg-secondary overflow-hidden flex mb-6">
-        {llmData.map((llm, index) => (
+        {data.map((llm, index) => (
           <motion.div
             key={llm.name}
             className={`h-full bg-gradient-to-r ${llm.color}`}
@@ -48,7 +93,7 @@ export function ShareOfVoice() {
 
       {/* Legend */}
       <div className="grid grid-cols-2 gap-4">
-        {llmData.map((llm, index) => (
+        {data.map((llm, index) => (
           <motion.div
             key={llm.name}
             className="flex items-center justify-between p-3 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors"

@@ -14,6 +14,11 @@ import Optimization from "./pages/Optimization";
 import Competitors from "./pages/Competitors";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import Agents from "./pages/Agents";
+import IntelligenceGraph from "./pages/IntelligenceGraph";
+import ProgrammaticSEO from "./pages/ProgrammaticSEO";
+import PromptTesting from "./pages/PromptTesting";
+import Integrations from "./pages/Integrations";
 
 const queryClient = new QueryClient();
 
@@ -30,13 +35,15 @@ const App = () => (
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/prompts" element={<ProtectedRoute><Prompts /></ProtectedRoute>} />
+            <Route path="/prompts/testing" element={<ProtectedRoute><PromptTesting /></ProtectedRoute>} />
             <Route path="/citations" element={<ProtectedRoute><Citations /></ProtectedRoute>} />
             <Route path="/optimization" element={<ProtectedRoute><Optimization /></ProtectedRoute>} />
             <Route path="/competitors" element={<ProtectedRoute><Competitors /></ProtectedRoute>} />
+            <Route path="/agents" element={<ProtectedRoute><Agents /></ProtectedRoute>} />
+            <Route path="/intelligence" element={<ProtectedRoute><IntelligenceGraph /></ProtectedRoute>} />
+            <Route path="/seo" element={<ProtectedRoute><ProgrammaticSEO /></ProtectedRoute>} />
+            <Route path="/integrations" element={<ProtectedRoute><Integrations /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-            <Route path="/programmatic-seo" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/ai-agents" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/integrations" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

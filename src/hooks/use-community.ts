@@ -6,9 +6,13 @@ export const useCommunity = (keywords: string[]) => {
     queryFn: async () => {
       if (keywords.length === 0) return [];
       
-      const response = await fetch("http://localhost:8000/api/community-intel", {
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/community-intel`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session?.access_token}`
+        },
         body: JSON.stringify({ keywords }),
       });
 

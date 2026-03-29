@@ -21,9 +21,13 @@ export const useCompetitors = (userId: string | undefined) => {
 
   const benchmarkMutation = useMutation({
     mutationFn: async ({ brandDomain, competitors, prompts }: { brandDomain: string, competitors: string[], prompts: string[] }) => {
-      const response = await fetch("http://localhost:8000/api/competitor-benchmark", {
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/competitor-benchmark`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session?.access_token}`
+        },
         body: JSON.stringify({ brand_domain: brandDomain, competitors, prompts }),
       });
 

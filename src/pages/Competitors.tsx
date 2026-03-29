@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { CompetitorInsights } from "@/components/dashboard/CompetitorInsights";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 interface Competitor {
   id: string;
@@ -105,7 +106,9 @@ export default function Competitors() {
             </Button>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="gap-2"><Plus className="h-4 w-4" /> Add Competitor</Button>
+                <Button className="gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 hover:shadow-[0_0_20px_rgba(0,212,255,0.4)] text-white font-bold h-10 px-6 rounded-xl border-0 transition-all">
+                  <Plus className="h-4 w-4" /> Add Competitor
+                </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader><DialogTitle>Add a Competitor</DialogTitle></DialogHeader>
@@ -116,9 +119,9 @@ export default function Competitors() {
                   </div>
                   <div className="space-y-2">
                     <Label>Domain</Label>
-                    <Input value={newComp.domain} onChange={e => setNewComp(p => ({ ...p, domain: e.target.value }))} placeholder="acme.com" />
+                    <Input value={newComp.domain} onChange={e => setNewComp(p => ({ ...p, domain: e.target.value }))} placeholder="acme.com" className="bg-secondary/50 border-white/5 h-11" />
                   </div>
-                  <Button onClick={addCompetitor} className="w-full">Add Competitor</Button>
+                  <Button onClick={addCompetitor} className="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-black h-11 rounded-xl shadow-[0_0_15px_rgba(0,212,255,0.4)] border-0">Add Competitor</Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -219,7 +222,13 @@ export default function Competitors() {
                       </TableCell>
                       <TableCell>
                         {!entry.isYou && (
-                          <Button variant="ghost" size="icon" onClick={() => deleteCompetitor(entry.id)} className="opacity-50 hover:opacity-100">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => deleteCompetitor(entry.id)} 
+                            className="opacity-50 hover:opacity-100 transition-opacity"
+                            aria-label={`Delete ${entry.name}`}
+                          >
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         )}
@@ -233,11 +242,13 @@ export default function Competitors() {
         )}
 
         {competitors.length === 0 && !loading && (
-          <div className="text-center py-8 bg-card rounded-2xl border border-border">
-            <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground mb-4">Add competitors to see how you compare across AI platforms.</p>
-            <Button onClick={() => setDialogOpen(true)}>Add Your First Competitor</Button>
-          </div>
+          <EmptyState 
+            icon={Users}
+            title="Competitor Base Offline"
+            description="Add your primary market rivals to start tracking visibility deltas and citation ownership across the 2026 search landscape."
+            actionLabel="Add Your First Competitor"
+            onAction={() => setDialogOpen(true)}
+          />
         )}
 
         {/* Competitive gap analysis */}

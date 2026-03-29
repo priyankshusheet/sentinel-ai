@@ -16,10 +16,7 @@ const navigation = [
   { title: "Prompt Analytics", href: "/prompts", icon: Search, badge: "12 new" },
   { title: "Citations", href: "/citations", icon: FileText },
   { title: "Optimization", href: "/optimization", icon: Zap, badge: "5 fixes" },
-  { title: "Programmatic SEO", href: "/programmatic-seo", icon: Globe },
   { title: "Competitors", href: "/competitors", icon: Users },
-  { title: "AI Agents", href: "/ai-agents", icon: Bot, badge: "Beta" },
-  { title: "Integrations", href: "/integrations", icon: Puzzle },
   { title: "Settings", href: "/settings", icon: Settings },
 ];
 

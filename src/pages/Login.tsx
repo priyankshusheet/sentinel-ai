@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Sparkles, ArrowRight, CheckCircle, Github, Chrome, Shield } from "lucide-react";
@@ -49,10 +49,11 @@ export default function Login() {
   };
 
   // Redirect if already logged in
-  if (user) {
-    navigate("/dashboard", { replace: true });
-    return null;
-  }
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,15 +61,24 @@ export default function Login() {
     try {
       if (isLogin) {
         const { error } = await signIn(email, password);
-        if (error) { toast.error(error.message); return; }
-        navigate("/dashboard");
+        if (error) {
+          toast.error(error.message);
+          setLoading(false);
+          return;
+        }
+        // onAuthStateChange will update user → useEffect redirects
       } else {
         const { error } = await signUp(email, password, fullName);
-        if (error) { toast.error(error.message); return; }
+        if (error) {
+          toast.error(error.message);
+          setLoading(false);
+          return;
+        }
         toast.success("Account created! Check your email to verify, or sign in now.");
-        navigate("/onboarding");
+        setLoading(false);
       }
-    } finally {
+    } catch (err) {
+      toast.error("An unexpected error occurred.");
       setLoading(false);
     }
   };

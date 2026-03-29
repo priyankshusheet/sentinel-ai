@@ -10,8 +10,8 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const SENTINEL_AI_KEY = Deno.env.get("SENTINEL_AI_KEY");
+    if (!SENTINEL_AI_KEY) throw new Error("SENTINEL_AI_KEY is not configured");
 
     const authHeader = req.headers.get("Authorization");
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -39,10 +39,11 @@ serve(async (req) => {
     const platform = llm_platform || "chatgpt";
     const brand = brand_name || "the user's brand";
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const AI_GATEWAY_URL = Deno.env.get("AI_GATEWAY_URL") || "https://ai.gateway.sentinel-ai.dev/v1/chat/completions";
+    const response = await fetch(AI_GATEWAY_URL, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${SENTINEL_AI_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({

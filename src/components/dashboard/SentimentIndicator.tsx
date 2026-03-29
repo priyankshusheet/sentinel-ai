@@ -1,8 +1,8 @@
-import { useRef } from "react";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { Smile, Meh, Frown } from "lucide-react";
-import { useAudioEffects } from "@/hooks/use-audio-effects";
-import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { Smile, Meh, Frown, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SentimentData {
   positive: number;
@@ -10,13 +10,55 @@ interface SentimentData {
   negative: number;
 }
 
-const sentimentData: SentimentData = {
-  positive: 72,
-  neutral: 21,
-  negative: 7,
-};
-
 export function SentimentIndicator() {
+  const { user } = useAuth();
+  const [data, setData] = useState<SentimentData>({ positive: 0, neutral: 0, negative: 0 });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user) return;
+      
+      const { data: citations, error } = await supabase
+        .from("citations")
+        .select("sentiment")
+        .eq("user_id", user.id);
+
+      if (error) {
+        console.error("Error fetching sentiment:", error);
+        setLoading(false);
+        return;
+      }
+
+      const counts = { positive: 0, neutral: 0, negative: 0 };
+      (citations || []).forEach((c: any) => {
+        if (c.sentiment === "positive") counts.positive++;
+        else if (c.sentiment === "negative") counts.negative++;
+        else counts.neutral++;
+      });
+
+      const total = citations?.length || 1;
+      setData({
+        positive: Math.round((counts.positive / total) * 100),
+        neutral: Math.round((counts.neutral / total) * 100),
+        negative: Math.round((counts.negative / total) * 100),
+      });
+      setLoading(false);
+    };
+
+    fetchData();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="rounded-2xl bg-card p-6 border border-border h-[350px] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  const primarySentiment = data.positive >= data.negative ? (data.positive >= data.neutral ? "positive" : "neutral") : "negative";
+
   return (
     <div className="rounded-2xl bg-card p-6 border border-border">
       <div className="mb-6">
@@ -32,118 +74,80 @@ export function SentimentIndicator() {
           animate={{ scale: 1 }}
           transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
         >
-          <div className="h-32 w-32 rounded-full bg-gradient-to-br from-success/20 to-success/5 flex items-center justify-center">
-            <div className="h-24 w-24 rounded-full bg-success/20 flex items-center justify-center">
-              <Smile className="h-12 w-12 text-success" />
+          <div className={`h-32 w-32 rounded-full flex items-center justify-center ${
+            primarySentiment === "positive" ? "bg-success/20" : 
+            primarySentiment === "negative" ? "bg-destructive/20" : "bg-muted/20"
+          }`}>
+            <div className={`h-24 w-24 rounded-full flex items-center justify-center ${
+              primarySentiment === "positive" ? "bg-success/20" : 
+              primarySentiment === "negative" ? "bg-destructive/20" : "bg-muted/20"
+            }`}>
+              {primarySentiment === "positive" && <Smile className="h-12 w-12 text-success" />}
+              {primarySentiment === "neutral" && <Meh className="h-12 w-12 text-muted-foreground" />}
+              {primarySentiment === "negative" && <Frown className="h-12 w-12 text-destructive" />}
             </div>
           </div>
           <motion.div
-            className="absolute -right-2 -top-2 rounded-full bg-success px-3 py-1 text-sm font-bold text-success-foreground"
+            className={`absolute -right-2 -top-2 rounded-full px-3 py-1 text-sm font-bold ${
+              primarySentiment === "positive" ? "bg-success text-success-foreground" : 
+              primarySentiment === "negative" ? "bg-destructive text-destructive-foreground" : "bg-muted-foreground text-white"
+            }`}
             initial={{ opacity: 0, scale: 0 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.5 }}
           >
-            {sentimentData.positive}%
+            {data.positive}%
           </motion.div>
         </motion.div>
       </div>
 
       {/* Breakdown bars */}
       <div className="space-y-4">
-        <motion.div
-          className="flex items-center gap-3"
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
-        >
+        <div className="flex items-center gap-3">
           <Smile className="h-5 w-5 text-success" />
           <div className="flex-1">
             <div className="h-2 rounded-full bg-secondary overflow-hidden">
               <motion.div
                 className="h-full rounded-full bg-success"
                 initial={{ width: 0 }}
-                animate={{ width: `${sentimentData.positive}%` }}
-                transition={{ duration: 0.8, delay: 0.4 }}
+                animate={{ width: `${data.positive}%` }}
+                transition={{ duration: 0.8 }}
               />
             </div>
           </div>
-          <span className="text-sm font-medium text-foreground w-12 text-right">
-            {sentimentData.positive}%
-          </span>
-        </motion.div>
+          <span className="text-sm font-medium text-foreground w-12 text-right">{data.positive}%</span>
+        </div>
 
-        <motion.div
-          className="flex items-center gap-3"
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4 }}
-        >
+        <div className="flex items-center gap-3">
           <Meh className="h-5 w-5 text-muted-foreground" />
           <div className="flex-1">
             <div className="h-2 rounded-full bg-secondary overflow-hidden">
               <motion.div
                 className="h-full rounded-full bg-muted-foreground"
                 initial={{ width: 0 }}
-                animate={{ width: `${sentimentData.neutral}%` }}
-                transition={{ duration: 0.8, delay: 0.5 }}
+                animate={{ width: `${data.neutral}%` }}
+                transition={{ duration: 0.8 }}
               />
             </div>
           </div>
-          <span className="text-sm font-medium text-foreground w-12 text-right">
-            {sentimentData.neutral}%
-          </span>
-        </motion.div>
+          <span className="text-sm font-medium text-foreground w-12 text-right">{data.neutral}%</span>
+        </div>
 
-        <motion.div
-          className="flex items-center gap-3"
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.5 }}
-        >
+        <div className="flex items-center gap-3">
           <Frown className="h-5 w-5 text-destructive" />
           <div className="flex-1">
             <div className="h-2 rounded-full bg-secondary overflow-hidden">
               <motion.div
                 className="h-full rounded-full bg-destructive"
                 initial={{ width: 0 }}
-                animate={{ width: `${sentimentData.negative}%` }}
-                transition={{ duration: 0.8, delay: 0.6 }}
+                animate={{ width: `${data.negative}%` }}
+                transition={{ duration: 0.8 }}
               />
             </div>
           </div>
-          <span className="text-sm font-medium text-foreground w-12 text-right">
-            {sentimentData.negative}%
-          </span>
-        </motion.div>
-      </div>
-    </div>
-  );
-}
-
-function SentimentRow({ icon: Icon, value, color, labelColor, delay }: any) {
-  return (
-    <motion.div
-      className="flex items-center gap-4 group/row"
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay }}
-    >
-      <Icon className={cn("h-5 w-5 transition-transform duration-300 group-hover/row:scale-120", labelColor)} />
-      <div className="flex-1">
-        <div className="h-2 rounded-full bg-white/5 border border-white/5 overflow-hidden">
-          <motion.div
-            className={cn("h-full rounded-full relative", color)}
-            initial={{ width: 0 }}
-            animate={{ width: `${value}%` }}
-            transition={{ duration: 1, delay: delay + 0.2, ease: "circOut" }}
-          >
-            <div className="absolute inset-0 bg-white/20 blur-[2px] opacity-30" />
-          </motion.div>
+          <span className="text-sm font-medium text-foreground w-12 text-right">{data.negative}%</span>
         </div>
       </div>
-      <span className={cn("text-xs font-bold w-12 text-right tracking-tight", labelColor)}>
-        {value}%
-      </span>
-    </motion.div>
+    </div>
   );
 }

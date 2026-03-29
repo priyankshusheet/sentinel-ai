@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const useOptimization = (userId?: string) => {
@@ -8,10 +9,14 @@ export const useOptimization = (userId?: string) => {
   const generateWeeklyTasks = async (url: string) => {
     if (!userId || !url) return null;
     setIsGenerating(true);
+    const { data: { session } } = await supabase.auth.getSession();
     try {
-      const response = await fetch("http://localhost:8000/api/weekly-tasks", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/weekly-tasks`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session?.access_token}`
+        },
         body: JSON.stringify({ user_id: userId, url })
       });
       const data = await response.json();
@@ -30,10 +35,14 @@ export const useOptimization = (userId?: string) => {
   const runTechnicalAudit = async (url: string) => {
     if (!url) return null;
     setIsAuditing(true);
+    const { data: { session } } = await supabase.auth.getSession();
     try {
-      const response = await fetch("http://localhost:8000/api/technical-audit", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/technical-audit`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session?.access_token}`
+        },
         body: JSON.stringify({ url })
       });
       const data = await response.json();
@@ -50,10 +59,14 @@ export const useOptimization = (userId?: string) => {
   };
 
   const generateContentFix = async (topic: string, context: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
     try {
-      const response = await fetch("http://localhost:8000/api/generate-content", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/generate-content`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session?.access_token}`
+        },
         body: JSON.stringify({ topic, website_context: context })
       });
       const data = await response.json();

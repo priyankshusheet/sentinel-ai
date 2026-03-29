@@ -95,7 +95,7 @@ export const usePrompts = (userId: string | undefined) => {
   });
 
   const analyzePromptMutation = useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async ({ id, parallel = false, platforms, use_cache = true }: { id: string; parallel?: boolean; platforms?: string[]; use_cache?: boolean }) => {
       // 1. Get prompt data
       const { data: prompt, error: promptError } = await supabase
         .from("tracked_prompts")
@@ -105,28 +105,59 @@ export const usePrompts = (userId: string | undefined) => {
       
       if (promptError) throw promptError;
 
-      // 2. Call Python Backend
-      const response = await fetch("http://localhost:8000/analyze/visibility", {
+      // 2. Call Python Backend with Auth
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/analyze/visibility`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: prompt.query, prompt_id: id, user_id: userId })
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session?.access_token}`
+        },
+        body: JSON.stringify({ 
+          prompt: prompt.query, 
+          prompt_id: id, 
+          user_id: userId,
+          parallel,
+          platforms,
+          use_cache
+        })
       });
 
       if (!response.ok) throw new Error("Backend analysis failed");
       const result = await response.json();
 
       // 3. Store result in Supabase
-      const { error: insertError } = await supabase.from("prompt_rankings").insert({
-        user_id: userId!,
-        prompt_id: id,
-        llm_platform: result.analysis.provider,
-        visibility: result.analysis.analysis?.visibility || "mentioned", // Fallback if format varies
-        confidence_score: result.analysis.analysis?.confidence_score || 0,
-        citations_found: result.analysis.analysis?.citations_found || 0,
-        ai_response: result.analysis.content
-      });
+      const analyses = result.analyses || [result.analysis];
+      
+      for (const analysis of analyses) {
+        const { error: insertError } = await supabase.from("prompt_rankings").insert({
+          user_id: userId!,
+          prompt_id: id,
+          llm_platform: analysis.provider,
+          visibility: analysis.analysis?.visibility || "mentioned",
+          confidence_score: analysis.analysis?.visibility_score || analysis.analysis?.confidence_score || 0,
+          citations_found: (analysis.analysis?.citations || []).length,
+          ai_response: analysis.content
+        });
 
-      if (insertError) throw insertError;
+        if (insertError) throw insertError;
+
+        // 4. Auto-populate citations if found
+        const citations = analysis.analysis?.citations || [];
+        if (citations.length > 0) {
+          const citationRows = citations.map((cit: any) => ({
+            user_id: userId!,
+            source_name: typeof cit === 'string' ? cit : (cit.name || cit.url),
+            source_url: typeof cit === 'string' ? cit : cit.url,
+            sentiment: analysis.analysis?.sentiment || 'neutral'
+          }));
+
+          await supabase.from("citations").upsert(citationRows, {
+            onConflict: 'source_url'
+          });
+        }
+      }
+
       return result;
     },
     onSuccess: () => {

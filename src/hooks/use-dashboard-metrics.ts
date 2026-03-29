@@ -41,11 +41,17 @@ export const useDashboardMetrics = (userId?: string) => {
         .order("created_at", { ascending: false })
         .limit(1);
 
+      // 5. Get competitors count
+      const { count: competitorsCount } = await supabase
+        .from("competitors")
+        .select("*", { count: 'exact', head: true })
+        .eq("user_id", userId);
+
       setMetrics({
         trackedPrompts: promptsCount || 0,
         activeCitations: citationsCount || 0,
         contentGaps: gapsCount || 0,
-        competitors: 5,
+        competitors: competitorsCount || 0,
         visibilityScore: rankings?.[0]?.confidence_score || 0,
         loading: false
       });
